@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gift Gallery</title>
+    <link href="style.css" rel="stylesheet">
+    <link href="snackbar.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<script src="https://www.gstatic.com/firebasejs/7.6.0/firebase.js"></script>
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<script>
+        let data;
+        $(document).ready(function(){
+            let firebaseConfig = {
+                apiKey: "AIzaSyASmg_Aey8H0Oa-40wutJwH-zw9kFdL808",
+                authDomain: "giftslideshow.firebaseapp.com",
+                databaseURL: "https://giftslideshow.firebaseio.com",
+                projectId: "giftslideshow",
+                storageBucket: "giftslideshow.appspot.com",
+                messagingSenderId: "742806349066",
+                appId: "1:742806349066:web:34bdbb0318b15dd1c686f3"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database().ref("ligia");
+            db.on('value', function(snapshot) {
+                let build = ""
+                let data = snapshot.val();
+                for(let key in data){
+                    build += `<img src="${data[key].imgURL}">`
+                }	
+                $("#gallery").html(build);	  
+            });
+            let d = new Date();
+            $("#upload").click(function(){
+                let storage = firebase.storage();
+                let storageRef = storage.ref();
+                let file = $("#file")[0].files[0];
+                
+                let imgRef = storageRef.child("ligia/" + file.name);
+                imgRef.put(file).then(function(snapshot) {
+                    console.log('Uploaded a blob or file!');
+    
+                    let db = firebase.database().ref();
+                    let ref = snapshot.ref.getDownloadURL().then(function(path){
+                        let stamp = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}`;
+                        db.child("ligia").push({
+                            imgURL: path,
+                            date: stamp
+                        });
+                        toast("Image Uploaded");
+                        $("#file").val("");
+                    })
+                });
+			})
+            let toast = function(text) {
+                let x = document.getElementById("snackbar");
+                x.innerHTML = text;
+                x.className = "show";
+                setTimeout(function(){ x.className = x.className.replace("show", ""); }, 2500);
+            }            
+        })
+	</script>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload New Images</h1>
+        <input type="file" id="file"><br>
+        <input type="text" id="comments" placeholder="Enter Comment"><br>
+        <button id="upload">Upload</button>
+    </div>
+    <div class="container">
+        <h1>Currently Uploaded Images</h1>
+        <div id="gallery"></div>
+    </div>
+    
+    <div id="snackbar"></div>
+
+</body>
+</html>

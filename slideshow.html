@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gift Gallery</title>
+    <link href="style.css" rel="stylesheet">
+    <link href="snackbar.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/7.6.0/firebase.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+	<script>
+        let data;
+        $(document).ready(function(){
+            let firebaseConfig = {
+                apiKey: "AIzaSyASmg_Aey8H0Oa-40wutJwH-zw9kFdL808",
+                authDomain: "giftslideshow.firebaseapp.com",
+                databaseURL: "https://giftslideshow.firebaseio.com",
+                projectId: "giftslideshow",
+                storageBucket: "giftslideshow.appspot.com",
+                messagingSenderId: "742806349066",
+                appId: "1:742806349066:web:34bdbb0318b15dd1c686f3"
+            };
+            let photo;
+            let count = 0;
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database().ref("ligia").orderByChild("date");
+            db.on('value', function(snapshot) {
+                photo = {images:[],current:0};
+                let data = snapshot.val();
+                for(let key in data){
+                    let img = new Image();
+                    photo.images.unshift({key:key,date:data[key].date,comment:data[key].comment});
+                    img.onload = function() {
+                        for(let i = 0; i < photo.images.length; i++){
+                            if(photo.images[i].key == key){
+                                photo.images[i].src = this;
+                            }
+                        }                 
+                    }
+                    img.src = data[key].imgURL;
+                }	
+            });
+            setInterval(function(){
+                if(photo.images.length > 0){
+                    $("#slideshow").html(photo.images[photo.current].src);
+                    photo.current = ++photo.current%photo.images.length;
+                }             
+            },4000);                     
+        })
+	</script>
+</head>
+<body>
+    <div id="slideshow" style="background-color:black;"></div>
+</body>
+</html>
